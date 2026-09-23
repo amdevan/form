@@ -28,21 +28,13 @@ var HEADERS = [
   "Phone",
   "Palika Name",
   "Q1 Regular attendance & homework support",
-  "Q1 Numbers",
   "Q2 Study environment & materials",
-  "Q2 Numbers",
   "Q3 Love, respect & equal treatment",
-  "Q3 Numbers",
   "Q4 Health, hygiene, nutrition & emotional alertness",
-  "Q4 Numbers",
   "Q5 Protection from violence & online risk",
-  "Q5 Numbers",
   "Q6 Adolescent dialogue on health & life skills",
-  "Q6 Numbers",
   "Q7 Complaint response system",
-  "Q7 Numbers",
-  "Q8 School-teacher coordination & participation",
-  "Q8 Numbers"
+  "Q8 School-teacher coordination & participation"
 ];
 
 function doGet(e) {
@@ -76,21 +68,13 @@ function doPost(e) {
     payload.phone || "",
     payload.palikaName || "",
     payload.q1 || "",
-    payload.q1Num || "",
     payload.q2 || "",
-    payload.q2Num || "",
     payload.q3 || "",
-    payload.q3Num || "",
     payload.q4 || "",
-    payload.q4Num || "",
     payload.q5 || "",
-    payload.q5Num || "",
     payload.q6 || "",
-    payload.q6Num || "",
     payload.q7 || "",
-    payload.q7Num || "",
-    payload.q8 || "",
-    payload.q8Num || ""
+    payload.q8 || ""
   ];
 
   sheet.appendRow(row);

@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
   addSubmission,
@@ -94,15 +93,6 @@ interface FormValues {
   palikaName: string;
   respondent: string;
   phone: string;
-  /** Every question is multi-select (checkboxes) → array of selected option values. */
-  q1: string[];
-  q2: string[];
-  q3: string[];
-  q4: string[];
-  q5: string[];
-  q6: string[];
-  q7: string[];
-  q8: string[];
   /** Per-option number entries, keyed by `${qKey}__${optionValue}`. */
   numbers: Record<string, string>;
 }
@@ -112,14 +102,6 @@ const EMPTY_VALUES: FormValues = {
   palikaName: "",
   respondent: "",
   phone: "",
-  q1: [],
-  q2: [],
-  q3: [],
-  q4: [],
-  q5: [],
-  q6: [],
-  q7: [],
-  q8: [],
   numbers: {},
 };
 
@@ -158,23 +140,6 @@ export function CommitmentForm() {
     });
   };
 
-  /** Toggle a checkbox option for ANY question (all questions are multi-select now). */
-  const toggleOption = (qKey: keyof FormValues, val: string) => {
-    setValues((v) => {
-      const current = (v[qKey] as string[]) ?? [];
-      const set = new Set(current);
-      if (set.has(val)) set.delete(val);
-      else set.add(val);
-      return { ...v, [qKey]: Array.from(set) };
-    });
-    setErrors((e) => {
-      if (!e[qKey as string]) return e;
-      const next = { ...e };
-      delete next[qKey as string];
-      return next;
-    });
-  };
-
   const setNumber = (qKey: string, optionValue: string, value: string) => {
     // Strip non-numeric characters; allow empty.
     const cleaned = value.replace(/[^0-9]/g, "");
@@ -195,9 +160,12 @@ export function CommitmentForm() {
     else if (!/^[0-9+\-\s]{7,15}$/.test(values.phone.trim()))
       e.phone = "मान्य फोन नम्बर लेख्नुहोस्।";
     for (const q of QUESTIONS) {
-      const selected = (values[q.key as keyof FormValues] as string[]) ?? [];
-      if (selected.length === 0)
-        e[q.key] = "कम्तीमा एक विकल्प छान्नुहोस्।";
+      // A question is answered if at least one of its three options has a number > 0.
+      const hasNumber = OPTIONS.some(
+        (opt) => (values.numbers[numKey(q.key, opt.value)] ?? "") !== "",
+      );
+      if (!hasNumber)
+        e[q.key] = "कम्तीमा एक संख्या भर्नुहोस्।";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -222,36 +190,24 @@ export function CommitmentForm() {
     }
 
     setSubmitting(true);
-    // Every question is multi-select. For each, record the selected options
-    // (joined with "; ") and the per-option numbers as "option:number" pairs.
-    const selectedOpts = (qKey: string) =>
-      (values[qKey as keyof FormValues] as string[]) ?? [];
-    const joined = (qKey: string) => selectedOpts(qKey).join("; ");
-    const numPairs = (qKey: string) =>
-      selectedOpts(qKey)
-        .map((opt) => `${opt}:${values.numbers[numKey(qKey, opt)] ?? ""}`)
-        .join("; ");
+    // For each question, record all three options as "option:number" pairs.
+    const answerFor = (qKey: string) =>
+      OPTIONS.map(
+        (opt) => `${opt.value}:${values.numbers[numKey(qKey, opt.value)] ?? "0"}`,
+      ).join("; ");
     const payload: Record<string, string> = {
       schoolName: values.schoolName.trim(),
       palikaName: values.palikaName.trim(),
       respondent: values.respondent.trim(),
       phone: values.phone.trim(),
-      q1: joined("q1"),
-      q1Num: numPairs("q1"),
-      q2: joined("q2"),
-      q2Num: numPairs("q2"),
-      q3: joined("q3"),
-      q3Num: numPairs("q3"),
-      q4: joined("q4"),
-      q4Num: numPairs("q4"),
-      q5: joined("q5"),
-      q5Num: numPairs("q5"),
-      q6: joined("q6"),
-      q6Num: numPairs("q6"),
-      q7: joined("q7"),
-      q7Num: numPairs("q7"),
-      q8: joined("q8"),
-      q8Num: numPairs("q8"),
+      q1: answerFor("q1"),
+      q2: answerFor("q2"),
+      q3: answerFor("q3"),
+      q4: answerFor("q4"),
+      q5: answerFor("q5"),
+      q6: answerFor("q6"),
+      q7: answerFor("q7"),
+      q8: answerFor("q8"),
     };
 
     try {
@@ -356,55 +312,46 @@ export function CommitmentForm() {
             <FieldError msg={errors.palikaName} />
           </QuestionCard>
 
-          {/* Checkbox questions (all questions are multi-select) */}
-          {QUESTIONS.map((q) => {
-            const selected = (values[q.key as keyof FormValues] as string[]) ?? [];
-            return (
-              <QuestionCard key={q.id}>
-                <FieldLabel required className="text-[15px] leading-relaxed">
-                  {q.label}
-                </FieldLabel>
-                <div className="mt-4 flex flex-col gap-2">
-                  {OPTIONS.map((opt) => {
-                    const checked = selected.includes(opt.value);
-                    return (
-                      <div
-                        key={opt.value}
-                        className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 text-[15px] transition-colors ${
-                          checked
-                            ? "border-violet-500 bg-violet-50"
-                            : "border-slate-200 hover:border-violet-300 hover:bg-violet-50/50"
-                        }`}
+          {/* Numbered commitment questions (no checkboxes) */}
+          {QUESTIONS.map((q) => (
+            <QuestionCard key={q.id}>
+              <FieldLabel required className="text-[15px] leading-relaxed">
+                {q.label}
+              </FieldLabel>
+              <div className="mt-4 flex flex-col gap-2">
+                {OPTIONS.map((opt) => {
+                  const value =
+                    values.numbers[numKey(q.key, opt.value)] ?? "";
+                  const filled = value !== "";
+                  return (
+                    <div
+                      key={opt.value}
+                      className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 text-[15px] transition-colors ${
+                        filled
+                          ? "border-violet-500 bg-violet-50"
+                          : "border-slate-200 hover:border-violet-300 hover:bg-violet-50/50"
+                      }`}
+                    >
+                      <label
+                        htmlFor={`${q.id}-${opt.value}-num`}
+                        className="flex flex-1 items-center gap-2 text-slate-700"
                       >
-                        <label
-                          htmlFor={`${q.id}-${opt.value}`}
-                          className="flex flex-1 cursor-pointer items-center gap-3"
-                        >
-                          <Checkbox
-                            id={`${q.id}-${opt.value}`}
-                            checked={checked}
-                            onCheckedChange={() =>
-                              toggleOption(q.key as keyof FormValues, opt.value)
-                            }
-                            className="border-slate-400 data-[state=checked]:border-violet-600 data-[state=checked]:bg-violet-600"
-                          />
-                          <span className="text-slate-700">{opt.label}</span>
-                        </label>
-                        <NumberEntry
-                          id={`${q.id}-${opt.value}-num`}
-                          value={values.numbers[numKey(q.key, opt.value)] ?? ""}
-                          onChange={(val) => setNumber(q.key, opt.value, val)}
-                          active={checked}
-                          label={`${q.label} — ${opt.label} (संख्या)`}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-                <FieldError msg={errors[q.key]} />
-              </QuestionCard>
-            );
-          })}
+                        {opt.label}
+                      </label>
+                      <NumberEntry
+                        id={`${q.id}-${opt.value}-num`}
+                        value={value}
+                        onChange={(val) => setNumber(q.key, opt.value, val)}
+                        active={filled}
+                        label={`${q.label} — ${opt.label} (संख्या)`}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <FieldError msg={errors[q.key]} />
+            </QuestionCard>
+          ))}
 
           {/* Submit row */}
           <div className="flex items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm sm:px-6">
