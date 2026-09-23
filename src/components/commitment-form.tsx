@@ -120,11 +120,46 @@ export function CommitmentForm() {
   const [submitting, setSubmitting] = React.useState(false);
   const [setupOpen, setSetupOpen] = React.useState(false);
   const [connected, setConnected] = React.useState(false);
+  const [adminMode, setAdminMode] = React.useState(false);
   const [lastSubmission, setLastSubmission] =
     React.useState<FormSubmission | null>(null);
 
+  // The floating Setup button is hidden from public access.
+  // It is only revealed when the URL contains `?admin=1` or `#admin`,
+  // or when the keyboard shortcut Ctrl+Shift+S is pressed.
   React.useEffect(() => {
     setConnected(!!getSheetConfig());
+
+    const checkAdmin = () => {
+      if (typeof window === "undefined") return;
+      const params = new URLSearchParams(window.location.search);
+      const hasQuery = params.get("admin") === "1";
+      const hasHash = window.location.hash.includes("admin");
+      setAdminMode(hasQuery || hasHash);
+    };
+    checkAdmin();
+    window.addEventListener("popstate", checkAdmin);
+    window.addEventListener("hashchange", checkAdmin);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === "S" || e.key === "s")) {
+        e.preventDefault();
+        setAdminMode((m) => {
+          const next = !m;
+          if (next) {
+            toast.info("Admin mode", {
+              description: "Setup button revealed. Press Ctrl+Shift+S again to hide.",
+            });
+          }
+          return next;
+        });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("popstate", checkAdmin);
+      window.removeEventListener("hashchange", checkAdmin);
+      window.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   const setField = <K extends keyof FormValues>(
@@ -388,26 +423,29 @@ export function CommitmentForm() {
         </div>
       </form>
 
-      {/* Floating Setup button (subtle, keeps Google Sheet config accessible) */}
-      <button
-        type="button"
-        onClick={() => setSetupOpen(true)}
-        aria-label="Setup"
-        title={connected ? "Google Sheet जडित · Setup" : "Google Sheet Setup"}
-        className={`fixed bottom-4 right-4 z-40 flex size-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-105 hover:shadow-xl ${
-          connected
-            ? "bg-emerald-500 text-white"
-            : "bg-violet-600 text-white"
-        }`}
-      >
-        <Settings2 className="size-5" />
-        {connected && (
-          <span className="absolute -right-0.5 -top-0.5 flex size-3">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
-            <span className="relative inline-flex size-3 rounded-full bg-emerald-400 ring-2 ring-white" />
-          </span>
-        )}
-      </button>
+      {/* Floating Setup button — HIDDEN from public access.
+          Revealed only via `?admin=1`, `#admin`, or Ctrl+Shift+S. */}
+      {adminMode && (
+        <button
+          type="button"
+          onClick={() => setSetupOpen(true)}
+          aria-label="Setup"
+          title={connected ? "Google Sheet जडित · Setup" : "Google Sheet Setup"}
+          className={`fixed bottom-4 right-4 z-40 flex size-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-105 hover:shadow-xl ${
+            connected
+              ? "bg-emerald-500 text-white"
+              : "bg-violet-600 text-white"
+          }`}
+        >
+          <Settings2 className="size-5" />
+          {connected && (
+            <span className="absolute -right-0.5 -top-0.5 flex size-3">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
+              <span className="relative inline-flex size-3 rounded-full bg-emerald-400 ring-2 ring-white" />
+            </span>
+          )}
+        </button>
+      )}
 
       <SheetSetupDialog
         open={setupOpen}
