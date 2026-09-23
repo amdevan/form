@@ -293,42 +293,6 @@ export function CommitmentForm() {
           </div>
         </div>
 
-        {/* Connection status bar */}
-        <div className="flex items-center justify-between gap-3 border-x border-violet-100 bg-white px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-2 text-sm">
-            {connected ? (
-              <>
-                <span className="relative flex size-2.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex size-2.5 rounded-full bg-emerald-500" />
-                </span>
-                <span className="font-medium text-slate-700">
-                  Google Sheet जडित
-                </span>
-                <CheckCircle2 className="size-4 text-emerald-600" />
-              </>
-            ) : (
-              <>
-                <span className="size-2.5 rounded-full bg-amber-400" />
-                <span className="font-medium text-slate-700">
-                  Google Sheet जडान छैन
-                </span>
-                <AlertCircle className="size-4 text-amber-500" />
-              </>
-            )}
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setSetupOpen(true)}
-            className="gap-1.5 border-violet-200 text-violet-700 hover:bg-violet-50 hover:text-violet-800"
-          >
-            <Settings2 className="size-4" />
-            Setup
-          </Button>
-        </div>
-
         {/* Question cards */}
         <div className="space-y-3 border-x border-b rounded-b-xl border-violet-100 bg-violet-50/50 p-3 sm:p-4">
           {/* Text fields card */}
@@ -466,6 +430,27 @@ export function CommitmentForm() {
           )}
         </div>
       </form>
+
+      {/* Floating Setup button (subtle, keeps Google Sheet config accessible) */}
+      <button
+        type="button"
+        onClick={() => setSetupOpen(true)}
+        aria-label="Setup"
+        title={connected ? "Google Sheet जडित · Setup" : "Google Sheet Setup"}
+        className={`fixed bottom-4 right-4 z-40 flex size-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-105 hover:shadow-xl ${
+          connected
+            ? "bg-emerald-500 text-white"
+            : "bg-violet-600 text-white"
+        }`}
+      >
+        <Settings2 className="size-5" />
+        {connected && (
+          <span className="absolute -right-0.5 -top-0.5 flex size-3">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
+            <span className="relative inline-flex size-3 rounded-full bg-emerald-400 ring-2 ring-white" />
+          </span>
+        )}
+      </button>
 
       <SheetSetupDialog
         open={setupOpen}
