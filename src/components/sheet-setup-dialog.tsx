@@ -21,6 +21,7 @@ import {
   saveSheetConfig,
   type SheetConfig,
 } from "@/lib/sheets";
+import { hasPermanentConfig } from "@/lib/permanent-config";
 
 interface SheetSetupDialogProps {
   open: boolean;
@@ -99,6 +100,48 @@ export function SheetSetupDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {hasPermanentConfig() ? (
+          <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600" />
+            <div className="space-y-0.5">
+              <p className="font-semibold">Permanent config active</p>
+              <p className="text-emerald-800/80">
+                A Google Sheet URL is baked into the app. Every visitor&apos;s
+                submission goes there automatically — no per-browser setup
+                needed. To change it, update{" "}
+                <code className="rounded bg-emerald-100 px-1 py-0.5 text-xs">
+                  PERMANENT_SCRIPT_URL
+                </code>{" "}
+                in{" "}
+                <code className="rounded bg-emerald-100 px-1 py-0.5 text-xs">
+                  src/lib/permanent-config.ts
+                </code>{" "}
+                and redeploy.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-amber-600" />
+            <div className="space-y-0.5">
+              <p className="font-semibold">No permanent config yet</p>
+              <p className="text-amber-800/80">
+                Saving the URL below only stores it in this browser. For a
+                permanent setup that works for every visitor, paste the URL
+                into{" "}
+                <code className="rounded bg-amber-100 px-1 py-0.5 text-xs">
+                  PERMANENT_SCRIPT_URL
+                </code>{" "}
+                in{" "}
+                <code className="rounded bg-amber-100 px-1 py-0.5 text-xs">
+                  src/lib/permanent-config.ts
+                </code>{" "}
+                and redeploy.
+              </p>
+            </div>
+          </div>
+        )}
+
         <ol className="space-y-3 text-sm">
           <Step n={1}>
             Create a new{" "}
@@ -174,8 +217,9 @@ export function SheetSetupDialog({
           />
           <p className="text-xs text-muted-foreground flex items-center gap-1.5">
             <ShieldCheck className="size-3.5 text-emerald-600" />
-            Stored only in your browser (localStorage). Never sent anywhere
-            except Google&apos;s Apps Script endpoint.
+            {hasPermanentConfig()
+              ? "Permanent URL is compiled into the app and shared by all visitors."
+              : "Stored only in your browser (localStorage) until you bake it into permanent-config.ts."}
           </p>
         </div>
 

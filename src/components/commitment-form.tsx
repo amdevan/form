@@ -14,10 +14,14 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
   addSubmission,
-  getSheetConfig,
   postToSheet,
   type FormSubmission,
 } from "@/lib/sheets";
+import {
+  getEffectiveConfig,
+  getEffectiveScriptUrl,
+  hasPermanentConfig,
+} from "@/lib/permanent-config";
 import { SheetSetupDialog } from "@/components/sheet-setup-dialog";
 
 /* ------------------------------------------------------------------ */
@@ -128,7 +132,9 @@ export function CommitmentForm() {
   // It is only revealed when the URL contains `?admin=1` or `#admin`,
   // or when the keyboard shortcut Ctrl+Shift+S is pressed.
   React.useEffect(() => {
-    setConnected(!!getSheetConfig());
+    // "Connected" is true once a Google Sheet URL exists — either from the
+    // permanent config baked into the build, or from a per-browser save.
+    setConnected(!!getEffectiveScriptUrl());
 
     const checkAdmin = () => {
       if (typeof window === "undefined") return;
@@ -207,8 +213,11 @@ export function CommitmentForm() {
       return;
     }
 
-    const cfg = getSheetConfig();
-    if (!cfg) {
+    const scriptUrl = getEffectiveScriptUrl();
+    if (!scriptUrl) {
+      // No permanent URL is configured yet AND no per-browser URL is saved.
+      // Only the site owner sees this — public visitors never do once the
+      // permanent URL is set in src/lib/permanent-config.ts.
       toast.error("Google Sheet जडान छैन", {
         description: "पहिले Setup बाट Google Sheet URL थप्नुहोस्।",
       });
@@ -238,7 +247,7 @@ export function CommitmentForm() {
     };
 
     try {
-      await postToSheet(cfg.scriptUrl, payload);
+      await postToSheet(scriptUrl, payload);
       const sub = addSubmission(payload);
       setLastSubmission(sub);
       toast.success("दर्ता भयो", {
@@ -450,11 +459,13 @@ export function CommitmentForm() {
       <SheetSetupDialog
         open={setupOpen}
         onOpenChange={setSetupOpen}
-        current={getSheetConfig()}
+        current={getEffectiveConfig()}
         onSaved={() => {
           setConnected(true);
           toast.success("जडान सफल", {
-            description: "अब फारम पेश गर्न सकिन्छ।",
+            description: hasPermanentConfig()
+              ? "Permanent URL जडित छ।"
+              : "अब फारम पेश गर्न सकिन्छ।",
           });
         }}
       />
