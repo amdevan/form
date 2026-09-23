@@ -119,6 +119,8 @@ interface FormValues {
   q6: string;
   q7: string[];
   q8: string;
+  /** Per-option number entries, keyed by `${qKey}__${optionValue}`. */
+  numbers: Record<string, string>;
 }
 
 const EMPTY_VALUES: FormValues = {
@@ -133,7 +135,13 @@ const EMPTY_VALUES: FormValues = {
   q6: "",
   q7: [],
   q8: "",
+  numbers: {},
 };
+
+/** Build the localStorage key used to store a number for a given option. */
+function numKey(qKey: string, optionValue: string) {
+  return `${qKey}__${optionValue}`;
+}
 
 /* ------------------------------------------------------------------ */
 /* Component                                                           */
@@ -180,6 +188,17 @@ export function CommitmentForm() {
     });
   };
 
+  const setNumber = (qKey: string, optionValue: string, value: string) => {
+    // Strip non-numeric characters; allow empty.
+    const cleaned = value.replace(/[^0-9]/g, "");
+    setValues((v) => {
+      const next = { ...v.numbers };
+      if (cleaned === "") delete next[numKey(qKey, optionValue)];
+      else next[numKey(qKey, optionValue)] = cleaned;
+      return { ...v, numbers: next };
+    });
+  };
+
   const validate = (): boolean => {
     const e: Record<string, string> = {};
     if (!values.studentName.trim()) e.studentName = "विद्यार्थीको नाम आवश्यक छ।";
@@ -218,18 +237,34 @@ export function CommitmentForm() {
     }
 
     setSubmitting(true);
+    // For radio questions: record the number entered next to the SELECTED option.
+    // For the checkbox question: record "option:number" pairs for each CHECKED option.
+    const radioNum = (qKey: string) =>
+      values.numbers[numKey(qKey, (values as Record<string, unknown>)[qKey] as string)] ?? "";
+    const checkboxNum = (qKey: string) =>
+      (values.q7)
+        .map((opt) => `${opt}:${values.numbers[numKey(qKey, opt)] ?? ""}`)
+        .join("; ");
     const payload: Record<string, string> = {
       studentName: values.studentName.trim(),
       className: values.className.trim(),
       phone: values.phone.trim(),
       q1: values.q1,
+      q1Num: radioNum("q1"),
       q2: values.q2,
+      q2Num: radioNum("q2"),
       q3: values.q3,
+      q3Num: radioNum("q3"),
       q4: values.q4,
+      q4Num: radioNum("q4"),
       q5: values.q5,
+      q5Num: radioNum("q5"),
       q6: values.q6,
+      q6Num: radioNum("q6"),
       q7: values.q7.join("; "),
+      q7Num: checkboxNum("q7"),
       q8: values.q8,
+      q8Num: radioNum("q8"),
     };
 
     try {
@@ -369,39 +404,72 @@ export function CommitmentForm() {
                   onValueChange={(v) => setField(q.key as keyof FormValues, v as never)}
                   className="mt-4 gap-2"
                 >
-                  {RADIO_OPTIONS.map((opt) => (
-                    <label
-                      key={opt.value}
-                      htmlFor={`${q.id}-${opt.value}`}
-                      className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-3 py-2.5 text-[15px] transition-colors hover:border-violet-300 hover:bg-violet-50/50 has-[:checked]:border-violet-500 has-[:checked]:bg-violet-50"
-                    >
-                      <RadioGroupItem
-                        id={`${q.id}-${opt.value}`}
-                        value={opt.value}
-                        className="border-slate-400 text-violet-600 data-[state=checked]:border-violet-600"
-                      />
-                      <span className="text-slate-700">{opt.label}</span>
-                    </label>
-                  ))}
+                  {RADIO_OPTIONS.map((opt) => {
+                    const selected = (values as Record<string, string>)[q.key] === opt.value;
+                    return (
+                      <div
+                        key={opt.value}
+                        className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 text-[15px] transition-colors ${
+                          selected
+                            ? "border-violet-500 bg-violet-50"
+                            : "border-slate-200 hover:border-violet-300 hover:bg-violet-50/50"
+                        }`}
+                      >
+                        <label
+                          htmlFor={`${q.id}-${opt.value}`}
+                          className="flex flex-1 cursor-pointer items-center gap-3"
+                        >
+                          <RadioGroupItem
+                            id={`${q.id}-${opt.value}`}
+                            value={opt.value}
+                            className="border-slate-400 text-violet-600 data-[state=checked]:border-violet-600"
+                          />
+                          <span className="text-slate-700">{opt.label}</span>
+                        </label>
+                        <NumberEntry
+                          id={`${q.id}-${opt.value}-num`}
+                          value={values.numbers[numKey(q.key, opt.value)] ?? ""}
+                          onChange={(val) => setNumber(q.key, opt.value, val)}
+                          active={selected}
+                          label={`${q.label} — ${opt.label} (संख्या)`}
+                        />
+                      </div>
+                    );
+                  })}
                 </RadioGroup>
               ) : (
                 <div className="mt-4 flex flex-col gap-2">
                   {RADIO_OPTIONS.map((opt) => {
                     const checked = values.q7.includes(opt.value);
                     return (
-                      <label
+                      <div
                         key={opt.value}
-                        htmlFor={`${q.id}-${opt.value}`}
-                        className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 px-3 py-2.5 text-[15px] transition-colors hover:border-violet-300 hover:bg-violet-50/50 has-[:checked]:border-violet-500 has-[:checked]:bg-violet-50"
+                        className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 text-[15px] transition-colors ${
+                          checked
+                            ? "border-violet-500 bg-violet-50"
+                            : "border-slate-200 hover:border-violet-300 hover:bg-violet-50/50"
+                        }`}
                       >
-                        <Checkbox
-                          id={`${q.id}-${opt.value}`}
-                          checked={checked}
-                          onCheckedChange={() => toggleCheckbox(opt.value)}
-                          className="border-slate-400 data-[state=checked]:border-violet-600 data-[state=checked]:bg-violet-600"
+                        <label
+                          htmlFor={`${q.id}-${opt.value}`}
+                          className="flex flex-1 cursor-pointer items-center gap-3"
+                        >
+                          <Checkbox
+                            id={`${q.id}-${opt.value}`}
+                            checked={checked}
+                            onCheckedChange={() => toggleCheckbox(opt.value)}
+                            className="border-slate-400 data-[state=checked]:border-violet-600 data-[state=checked]:bg-violet-600"
+                          />
+                          <span className="text-slate-700">{opt.label}</span>
+                        </label>
+                        <NumberEntry
+                          id={`${q.id}-${opt.value}-num`}
+                          value={values.numbers[numKey(q.key, opt.value)] ?? ""}
+                          onChange={(val) => setNumber(q.key, opt.value, val)}
+                          active={checked}
+                          label={`${q.label} — ${opt.label} (संख्या)`}
                         />
-                        <span className="text-slate-700">{opt.label}</span>
-                      </label>
+                      </div>
                     );
                   })}
                 </div>
@@ -512,5 +580,49 @@ function FieldError({ msg }: { msg?: string }) {
       <AlertCircle className="size-3.5" />
       {msg}
     </p>
+  );
+}
+
+/** Small numeric entry box rendered on the right of each option row. */
+function NumberEntry({
+  id,
+  value,
+  onChange,
+  active,
+  label,
+}: {
+  id: string;
+  value: string;
+  onChange: (val: string) => void;
+  active: boolean;
+  label: string;
+}) {
+  // Stop clicks on the input from toggling the parent radio/checkbox label.
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+  return (
+    <div className="flex shrink-0 items-center gap-1.5" onClick={stop}>
+      <label
+        htmlFor={id}
+        className="hidden text-xs font-medium text-slate-400 sm:inline"
+      >
+        संख्या
+      </label>
+      <input
+        id={id}
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="0"
+        aria-label={label}
+        title="संख्या लेख्नुहोस्"
+        className={`h-8 w-16 rounded-md border bg-white text-center text-sm tabular-nums shadow-xs outline-none transition-colors focus-visible:ring-[3px] sm:w-20 ${
+          active
+            ? "border-violet-400 text-violet-800 focus-visible:border-violet-500 focus-visible:ring-violet-200"
+            : "border-slate-200 text-slate-600 focus-visible:border-violet-400 focus-visible:ring-violet-100"
+        }`}
+      />
+    </div>
   );
 }
