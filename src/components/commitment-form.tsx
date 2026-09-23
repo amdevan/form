@@ -159,14 +159,6 @@ export function CommitmentForm() {
     if (!values.phone.trim()) e.phone = "फोन नम्बर आवश्यक छ।";
     else if (!/^[0-9+\-\s]{7,15}$/.test(values.phone.trim()))
       e.phone = "मान्य फोन नम्बर लेख्नुहोस्।";
-    for (const q of QUESTIONS) {
-      // A question is answered if at least one of its three options has a number > 0.
-      const hasNumber = OPTIONS.some(
-        (opt) => (values.numbers[numKey(q.key, opt.value)] ?? "") !== "",
-      );
-      if (!hasNumber)
-        e[q.key] = "कम्तीमा एक संख्या भर्नुहोस्।";
-    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -315,7 +307,7 @@ export function CommitmentForm() {
           {/* Numbered commitment questions (no checkboxes) */}
           {QUESTIONS.map((q) => (
             <QuestionCard key={q.id}>
-              <FieldLabel required className="text-[15px] leading-relaxed">
+              <FieldLabel className="text-[15px] leading-relaxed">
                 {q.label}
               </FieldLabel>
               <div className="mt-4 flex flex-col gap-2">
