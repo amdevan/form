@@ -91,6 +91,7 @@ const QUESTIONS: Question[] = [
 
 interface FormValues {
   schoolName: string;
+  palikaName: string;
   respondent: string;
   phone: string;
   /** Every question is multi-select (checkboxes) → array of selected option values. */
@@ -108,6 +109,7 @@ interface FormValues {
 
 const EMPTY_VALUES: FormValues = {
   schoolName: "",
+  palikaName: "",
   respondent: "",
   phone: "",
   q1: [],
@@ -187,6 +189,7 @@ export function CommitmentForm() {
   const validate = (): boolean => {
     const e: Record<string, string> = {};
     if (!values.schoolName.trim()) e.schoolName = "विद्यालयको नाम आवश्यक छ।";
+    if (!values.palikaName.trim()) e.palikaName = "पालिकाको नाम आवश्यक छ।";
     if (!values.respondent.trim()) e.respondent = "फारम भर्ने व्यक्ति आवश्यक छ।";
     if (!values.phone.trim()) e.phone = "फोन नम्बर आवश्यक छ।";
     else if (!/^[0-9+\-\s]{7,15}$/.test(values.phone.trim()))
@@ -230,6 +233,7 @@ export function CommitmentForm() {
         .join("; ");
     const payload: Record<string, string> = {
       schoolName: values.schoolName.trim(),
+      palikaName: values.palikaName.trim(),
       respondent: values.respondent.trim(),
       phone: values.phone.trim(),
       q1: joined("q1"),
@@ -309,6 +313,19 @@ export function CommitmentForm() {
               className="mt-2 h-11"
             />
             <FieldError msg={errors.schoolName} />
+
+            <FieldLabel htmlFor="palikaName" required className="mt-5">
+              पालिकाको नाम
+            </FieldLabel>
+            <Input
+              id="palikaName"
+              value={values.palikaName}
+              onChange={(e) => setField("palikaName", e.target.value)}
+              placeholder="तपाईंको उत्तर"
+              aria-invalid={!!errors.palikaName}
+              className="mt-2 h-11"
+            />
+            <FieldError msg={errors.palikaName} />
 
             <FieldLabel htmlFor="respondent" required className="mt-5">
               फारम भर्ने व्यक्ति
@@ -423,6 +440,7 @@ export function CommitmentForm() {
                 <p className="text-emerald-800/80">
                   {new Date(lastSubmission.timestamp).toLocaleString()} ·{" "}
                   {lastSubmission.data.schoolName} ·{" "}
+                  {lastSubmission.data.palikaName} ·{" "}
                   {lastSubmission.data.respondent}
                 </p>
               </div>
