@@ -13,7 +13,13 @@ export default function Home() {
 
       <footer className="mt-auto border-t border-violet-200/70 bg-white/70 backdrop-blur">
         <div className="mx-auto max-w-2xl px-4 py-4 text-center text-xs text-slate-500">
-          © {new Date().getFullYear()} अभिभावक प्रतिबद्धता फारम
+          <p>
+            © {new Date().getFullYear()} अभिभावक प्रतिबद्धता फारम
+          </p>
+          <p className="mt-1">
+            Design &amp; Developed By{" "}
+            <span className="font-semibold text-violet-700">IT Relevant</span>
+          </p>
         </div>
       </footer>
     </div>
