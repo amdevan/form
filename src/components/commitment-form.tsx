@@ -43,55 +43,55 @@ const QUESTIONS: Question[] = [
     id: "q1",
     key: "q1",
     label:
-      "१. म/हामी घोषणा गर्दछौं कि छोराछोरीलाई नियमित र समयमा विद्यालय पठाउने तथा पढाइ र गुणस्तरमा आवश्यक सहयोग गर्नेछौं।",
+      "१. मेरो/हाम्रो छोराछोरीलाई नियमित र समयमै विद्यालय पठाउने तथा पढाइ र गृहकार्यमा आवश्यक सहयोग गर्ने छु।",
   },
   {
     id: "q2",
     key: "q2",
     label:
-      "२. बालबालिकाको अध्ययनका लागि अनुकूल वातावरण र शैक्षिक सामग्रीको व्यवस्था गर्नुहुन्छ?",
+      "२. घरमा अध्ययनका लागि अनुकूल वातावरण र आवश्यक शैक्षिक सामग्रीको व्यवस्था गर्ने छु।",
   },
   {
     id: "q3",
     key: "q3",
     label:
-      "३. चेतनामूलक मार्ग, सम्मान र समान व्यवहार गर्ने तथा कुनै पनि भेदभाव नगरी सहभागितामूलक रूपमा अग्रसर हुनुहुन्छ?",
+      "३. छोराछोरीलाई माया, सम्मान र समान व्यवहार गर्नुका साथै उनीहरूको कुरा ध्यानपूर्वक सुन्ने तथा उनीहरूसँग नियमित सकारात्मक कुरा गर्ने छु।",
   },
   {
     id: "q4",
     key: "q4",
     label:
-      "४. घर, विद्यालय र समुदायमा भएको कुनै पनि दुर्व्यवहार, उत्पीडन तथा अनलाइन जोखिम रोक्न सकिने भूमिका खेल्नुहुन्छ? असुविधा देखिएमा विद्यालय वा सम्बन्धित निकायमा जानकारी गराउँछु।",
+      "४. छोराछोरीको स्वास्थ्य, सरसफाइ, पोषण र मानसिक तथा भावनात्मक अवस्थाप्रति सजग रहने छु र आवश्यक परे विद्यालय वा सम्बन्धित सेवा प्रदायकसँग समन्वय गर्ने छु।",
   },
   {
     id: "q5",
     key: "q5",
     label:
-      "५. विद्यार्थीहरूको सिकाइ विधि, दुर्घटना र जोखिम रोक्ने उपायबारे जानकारी गराउन र सकारात्मक सहयोग गर्नुहुन्छ?",
+      "५. घर, विद्यालय र समुदायमा हुने हिंसा, दुर्व्यवहार, शोषण तथा अनलाइन जोखिमबाट छोराछोरीलाई सुरक्षित राख्न सक्रिय भूमिका खेल्ने छु। असुरक्षित अवस्था देखिएमा विद्यालय वा सम्बन्धित निकायमा जानकारी गराउने छु।",
   },
   {
     id: "q6",
     key: "q6",
     label:
-      "६. विद्यालयको स्वयंसेवक प्रणाली तथा सुरक्षा व्यवस्थामा आवश्यकतानुसार सहयोग गर्न तयार हुनुहुन्छ?",
+      "६. किशोरावस्था, स्वास्थ्य, सुरक्षा तथा जीवनोपयोगी सिपका विषयमा छोराछोरीसँग खुला र सकारात्मक संवाद गर्ने छु।",
   },
   {
     id: "q7",
     key: "q7",
     label:
-      "७. विद्यालय र शिक्षकसँगको सहकार्य सम्बन्ध तथा सहभागितामा सक्रिय हुनुहुन्छ। (एकभन्दा बढी छनौट गर्न सक्नुहुन्छ)",
+      "७. विद्यालयको गुनासो सुनुवाइ संयन्त्रको प्रयोग गर्न प्रोत्साहित गर्ने छु।",
   },
   {
     id: "q8",
     key: "q8",
     label:
-      "८. छात्र/छात्राको स्वास्थ्य, सरसफाइ, पोषण र मानसिक तथा भावनात्मक अवस्था जाँच गर्नुहुन्छ र आवश्यक परे विशेषज्ञ वा सम्बन्धित सेवा प्रदायकसँग सम्पर्क गर्नुहुन्छ?",
+      "८. विद्यालय र शिक्षकसँग नियमित समन्वय तथा सञ्चार गर्ने छु। विद्यालयका अभिभावक शिक्षक बैठक, अभिभावक भेला तथा अन्य कार्यक्रममा सहभागी हुने तथा सक्रिय सहयोग गर्ने छु।",
   },
 ];
 
 interface FormValues {
-  studentName: string;
-  className: string;
+  schoolName: string;
+  respondent: string;
   phone: string;
   /** Every question is multi-select (checkboxes) → array of selected option values. */
   q1: string[];
@@ -107,8 +107,8 @@ interface FormValues {
 }
 
 const EMPTY_VALUES: FormValues = {
-  studentName: "",
-  className: "",
+  schoolName: "",
+  respondent: "",
   phone: "",
   q1: [],
   q2: [],
@@ -186,8 +186,8 @@ export function CommitmentForm() {
 
   const validate = (): boolean => {
     const e: Record<string, string> = {};
-    if (!values.studentName.trim()) e.studentName = "विद्यार्थीको नाम आवश्यक छ।";
-    if (!values.className.trim()) e.className = "कक्षा आवश्यक छ।";
+    if (!values.schoolName.trim()) e.schoolName = "विद्यालयको नाम आवश्यक छ।";
+    if (!values.respondent.trim()) e.respondent = "फारम भर्ने व्यक्ति आवश्यक छ।";
     if (!values.phone.trim()) e.phone = "फोन नम्बर आवश्यक छ।";
     else if (!/^[0-9+\-\s]{7,15}$/.test(values.phone.trim()))
       e.phone = "मान्य फोन नम्बर लेख्नुहोस्।";
@@ -229,8 +229,8 @@ export function CommitmentForm() {
         .map((opt) => `${opt}:${values.numbers[numKey(qKey, opt)] ?? ""}`)
         .join("; ");
     const payload: Record<string, string> = {
-      studentName: values.studentName.trim(),
-      className: values.className.trim(),
+      schoolName: values.schoolName.trim(),
+      respondent: values.respondent.trim(),
       phone: values.phone.trim(),
       q1: joined("q1"),
       q1Num: numPairs("q1"),
@@ -285,10 +285,10 @@ export function CommitmentForm() {
               अभिभावकको प्रतिबद्धता संकलन फारम
             </h1>
             <p className="mt-3 max-w-prose text-sm leading-relaxed text-violet-100 sm:text-base">
-              बालबालिकाले अभिभावक वा परिवारबाट पाउने अभिभावकको प्रतिबद्धता
-              अनलाइन फारममा रेकर्ड गरिनेछ। यो प्रपत्र हरेक नयाँ शैक्षिक सत्रमा
-              सम्पूर्ण अभिभावकले भर्न सक्नुहुन्छ। प्रयास गर्नुहोस् — तपाईंको
-              सहयोगले बालबालिकाको उज्ज्वल भविष्य निर्माण गर्छ।
+              बालबालिकाले अभिभावक वाट भराएर ल्याएका अभिभावकको प्रतिबद्धता
+              अनलाइन रिपोर्ट यसमा गर्नुहोस्। यो भर्दा हरेक १ देखि ८ नम्बर
+              शीर्षकमा सम्पूर्ण अभिभावकले गर्ने छु, गर्न सक्दिनँ, प्रयास गर्ने छु
+              भनेर भरेका गनेर कति कति छ लेख्नुहोला।
             </p>
           </div>
         </div>
@@ -333,31 +333,31 @@ export function CommitmentForm() {
         <div className="space-y-3 border-x border-b rounded-b-xl border-violet-100 bg-violet-50/50 p-3 sm:p-4">
           {/* Text fields card */}
           <QuestionCard>
-            <FieldLabel htmlFor="studentName" required>
-              विद्यार्थीको नाम
+            <FieldLabel htmlFor="schoolName" required>
+              विद्यालयको नाम
             </FieldLabel>
             <Input
-              id="studentName"
-              value={values.studentName}
-              onChange={(e) => setField("studentName", e.target.value)}
+              id="schoolName"
+              value={values.schoolName}
+              onChange={(e) => setField("schoolName", e.target.value)}
               placeholder="तपाईंको उत्तर"
-              aria-invalid={!!errors.studentName}
+              aria-invalid={!!errors.schoolName}
               className="mt-2 h-11"
             />
-            <FieldError msg={errors.studentName} />
+            <FieldError msg={errors.schoolName} />
 
-            <FieldLabel htmlFor="className" required className="mt-5">
-              कक्षा
+            <FieldLabel htmlFor="respondent" required className="mt-5">
+              फारम भर्ने व्यक्ति
             </FieldLabel>
             <Input
-              id="className"
-              value={values.className}
-              onChange={(e) => setField("className", e.target.value)}
+              id="respondent"
+              value={values.respondent}
+              onChange={(e) => setField("respondent", e.target.value)}
               placeholder="तपाईंको उत्तर"
-              aria-invalid={!!errors.className}
+              aria-invalid={!!errors.respondent}
               className="mt-2 h-11"
             />
-            <FieldError msg={errors.className} />
+            <FieldError msg={errors.respondent} />
 
             <FieldLabel htmlFor="phone" required className="mt-5">
               फोन नम्बर
@@ -458,8 +458,8 @@ export function CommitmentForm() {
                 <p className="font-semibold">प्रविष्टि दर्ता भयो</p>
                 <p className="text-emerald-800/80">
                   {new Date(lastSubmission.timestamp).toLocaleString()} ·{" "}
-                  {lastSubmission.data.studentName} ·{" "}
-                  {lastSubmission.data.className}
+                  {lastSubmission.data.schoolName} ·{" "}
+                  {lastSubmission.data.respondent}
                 </p>
               </div>
             </div>

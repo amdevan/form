@@ -23,24 +23,24 @@ export const APPS_SCRIPT_CODE = `/**
 
 var HEADERS = [
   "Timestamp",
-  "Student Name",
-  "Class",
+  "School Name",
+  "Respondent",
   "Phone",
-  "Q1 Regular attendance & study support",
+  "Q1 Regular attendance & homework support",
   "Q1 Numbers",
   "Q2 Study environment & materials",
   "Q2 Numbers",
-  "Q3 Respect & equal treatment",
+  "Q3 Love, respect & equal treatment",
   "Q3 Numbers",
-  "Q4 Abuse / harassment prevention & reporting",
+  "Q4 Health, hygiene, nutrition & emotional alertness",
   "Q4 Numbers",
-  "Q5 Learning methods & positive support",
+  "Q5 Protection from violence & online risk",
   "Q5 Numbers",
-  "Q6 School volunteer / safety system",
+  "Q6 Adolescent dialogue on health & life skills",
   "Q6 Numbers",
-  "Q7 Parent-teacher engagement (multi)",
+  "Q7 Complaint response system",
   "Q7 Numbers",
-  "Q8 Health, hygiene, nutrition & emotional check",
+  "Q8 School-teacher coordination & participation",
   "Q8 Numbers"
 ];
 
@@ -70,8 +70,8 @@ function doPost(e) {
 
   var row = [
     new Date(),
-    payload.studentName || "",
-    payload.className || "",
+    payload.schoolName || "",
+    payload.respondent || "",
     payload.phone || "",
     payload.q1 || "",
     payload.q1Num || "",
