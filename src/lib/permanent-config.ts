@@ -15,7 +15,7 @@
  * Leave it empty ("") to fall back to the per-browser localStorage config
  * (useful only while testing before you've finalized a Sheet URL).
  */
-export const PERMANENT_SCRIPT_URL = "";
+export const PERMANENT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQALGiTgu750XnPmxXZtKsfm9_q1PtXMcAStmD4F-x4GwVpzTy7_dRXyDhrFHPfwFJWg/exec";
 
 /**
  * Returns the permanent Google Sheet URL if configured above,
