@@ -27,21 +27,21 @@ var HEADERS = [
   "Class",
   "Phone",
   "Q1 Regular attendance & study support",
-  "Q1 Number",
+  "Q1 Numbers",
   "Q2 Study environment & materials",
-  "Q2 Number",
+  "Q2 Numbers",
   "Q3 Respect & equal treatment",
-  "Q3 Number",
+  "Q3 Numbers",
   "Q4 Abuse / harassment prevention & reporting",
-  "Q4 Number",
+  "Q4 Numbers",
   "Q5 Learning methods & positive support",
-  "Q5 Number",
+  "Q5 Numbers",
   "Q6 School volunteer / safety system",
-  "Q6 Number",
+  "Q6 Numbers",
   "Q7 Parent-teacher engagement (multi)",
   "Q7 Numbers",
   "Q8 Health, hygiene, nutrition & emotional check",
-  "Q8 Number"
+  "Q8 Numbers"
 ];
 
 function doGet(e) {

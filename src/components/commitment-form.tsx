@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
@@ -26,82 +25,65 @@ import { SheetSetupDialog } from "@/components/sheet-setup-dialog";
 /* Form definition                                                    */
 /* ------------------------------------------------------------------ */
 
-const RADIO_OPTIONS = [
-  { value: "गर्नु छ", label: "गर्नु छ" },
-  { value: "गर्न सकिँदैन", label: "गर्न सकिँदैन" },
-  { value: "प्रायः गर्नु छ", label: "प्रायः गर्नु छ" },
+// Correct Nepali spellings for the three commitment options.
+const OPTIONS = [
+  { value: "गर्ने छु", label: "गर्ने छु" },
+  { value: "गर्न सक्दिनँ", label: "गर्न सक्दिनँ" },
+  { value: "प्रयास गर्ने छु", label: "प्रयास गर्ने छु" },
 ] as const;
 
-interface RadioQuestion {
+interface Question {
   id: string;
   key: string;
   label: string;
-  type: "radio";
 }
-
-interface CheckboxQuestion {
-  id: string;
-  key: string;
-  label: string;
-  type: "checkbox";
-}
-
-type Question = RadioQuestion | CheckboxQuestion;
 
 const QUESTIONS: Question[] = [
   {
     id: "q1",
     key: "q1",
-    type: "radio",
     label:
       "१. म/हामी घोषणा गर्दछौं कि छोराछोरीलाई नियमित र समयमा विद्यालय पठाउने तथा पढाइ र गुणस्तरमा आवश्यक सहयोग गर्नेछौं।",
   },
   {
     id: "q2",
     key: "q2",
-    type: "radio",
     label:
       "२. बालबालिकाको अध्ययनका लागि अनुकूल वातावरण र शैक्षिक सामग्रीको व्यवस्था गर्नुहुन्छ?",
   },
   {
     id: "q3",
     key: "q3",
-    type: "radio",
     label:
       "३. चेतनामूलक मार्ग, सम्मान र समान व्यवहार गर्ने तथा कुनै पनि भेदभाव नगरी सहभागितामूलक रूपमा अग्रसर हुनुहुन्छ?",
   },
   {
     id: "q4",
     key: "q4",
-    type: "radio",
     label:
       "४. घर, विद्यालय र समुदायमा भएको कुनै पनि दुर्व्यवहार, उत्पीडन तथा अनलाइन जोखिम रोक्न सकिने भूमिका खेल्नुहुन्छ? असुविधा देखिएमा विद्यालय वा सम्बन्धित निकायमा जानकारी गराउँछु।",
   },
   {
     id: "q5",
     key: "q5",
-    type: "radio",
     label:
       "५. विद्यार्थीहरूको सिकाइ विधि, दुर्घटना र जोखिम रोक्ने उपायबारे जानकारी गराउन र सकारात्मक सहयोग गर्नुहुन्छ?",
   },
   {
     id: "q6",
     key: "q6",
-    type: "radio",
     label:
       "६. विद्यालयको स्वयंसेवक प्रणाली तथा सुरक्षा व्यवस्थामा आवश्यकतानुसार सहयोग गर्न तयार हुनुहुन्छ?",
   },
   {
     id: "q7",
     key: "q7",
-    type: "checkbox",
     label:
       "७. विद्यालय र शिक्षकसँगको सहकार्य सम्बन्ध तथा सहभागितामा सक्रिय हुनुहुन्छ। (एकभन्दा बढी छनौट गर्न सक्नुहुन्छ)",
   },
   {
     id: "q8",
     key: "q8",
-    type: "radio",
     label:
       "८. छात्र/छात्राको स्वास्थ्य, सरसफाइ, पोषण र मानसिक तथा भावनात्मक अवस्था जाँच गर्नुहुन्छ र आवश्यक परे विशेषज्ञ वा सम्बन्धित सेवा प्रदायकसँग सम्पर्क गर्नुहुन्छ?",
   },
@@ -111,14 +93,15 @@ interface FormValues {
   studentName: string;
   className: string;
   phone: string;
-  q1: string;
-  q2: string;
-  q3: string;
-  q4: string;
-  q5: string;
-  q6: string;
+  /** Every question is multi-select (checkboxes) → array of selected option values. */
+  q1: string[];
+  q2: string[];
+  q3: string[];
+  q4: string[];
+  q5: string[];
+  q6: string[];
   q7: string[];
-  q8: string;
+  q8: string[];
   /** Per-option number entries, keyed by `${qKey}__${optionValue}`. */
   numbers: Record<string, string>;
 }
@@ -127,14 +110,14 @@ const EMPTY_VALUES: FormValues = {
   studentName: "",
   className: "",
   phone: "",
-  q1: "",
-  q2: "",
-  q3: "",
-  q4: "",
-  q5: "",
-  q6: "",
+  q1: [],
+  q2: [],
+  q3: [],
+  q4: [],
+  q5: [],
+  q6: [],
   q7: [],
-  q8: "",
+  q8: [],
   numbers: {},
 };
 
@@ -166,24 +149,26 @@ export function CommitmentForm() {
   ) => {
     setValues((v) => ({ ...v, [key]: val }));
     setErrors((e) => {
-      if (!e[key]) return e;
+      if (!e[key as string]) return e;
       const next = { ...e };
-      delete next[key];
+      delete next[key as string];
       return next;
     });
   };
 
-  const toggleCheckbox = (val: string) => {
+  /** Toggle a checkbox option for ANY question (all questions are multi-select now). */
+  const toggleOption = (qKey: keyof FormValues, val: string) => {
     setValues((v) => {
-      const set = new Set(v.q7);
+      const current = (v[qKey] as string[]) ?? [];
+      const set = new Set(current);
       if (set.has(val)) set.delete(val);
       else set.add(val);
-      return { ...v, q7: Array.from(set) };
+      return { ...v, [qKey]: Array.from(set) };
     });
     setErrors((e) => {
-      if (!e.q7) return e;
+      if (!e[qKey as string]) return e;
       const next = { ...e };
-      delete next.q7;
+      delete next[qKey as string];
       return next;
     });
   };
@@ -207,12 +192,9 @@ export function CommitmentForm() {
     else if (!/^[0-9+\-\s]{7,15}$/.test(values.phone.trim()))
       e.phone = "मान्य फोन नम्बर लेख्नुहोस्।";
     for (const q of QUESTIONS) {
-      if (q.type === "radio") {
-        if (!(values as Record<string, unknown>)[q.key])
-          e[q.key] = "कृपया एक विकल्प छान्नुहोस्।";
-      } else {
-        if (values.q7.length === 0) e.q7 = "कम्तीमा एक विकल्प छान्नुहोस्।";
-      }
+      const selected = (values[q.key as keyof FormValues] as string[]) ?? [];
+      if (selected.length === 0)
+        e[q.key] = "कम्तीमा एक विकल्प छान्नुहोस्।";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -237,34 +219,35 @@ export function CommitmentForm() {
     }
 
     setSubmitting(true);
-    // For radio questions: record the number entered next to the SELECTED option.
-    // For the checkbox question: record "option:number" pairs for each CHECKED option.
-    const radioNum = (qKey: string) =>
-      values.numbers[numKey(qKey, (values as Record<string, unknown>)[qKey] as string)] ?? "";
-    const checkboxNum = (qKey: string) =>
-      (values.q7)
+    // Every question is multi-select. For each, record the selected options
+    // (joined with "; ") and the per-option numbers as "option:number" pairs.
+    const selectedOpts = (qKey: string) =>
+      (values[qKey as keyof FormValues] as string[]) ?? [];
+    const joined = (qKey: string) => selectedOpts(qKey).join("; ");
+    const numPairs = (qKey: string) =>
+      selectedOpts(qKey)
         .map((opt) => `${opt}:${values.numbers[numKey(qKey, opt)] ?? ""}`)
         .join("; ");
     const payload: Record<string, string> = {
       studentName: values.studentName.trim(),
       className: values.className.trim(),
       phone: values.phone.trim(),
-      q1: values.q1,
-      q1Num: radioNum("q1"),
-      q2: values.q2,
-      q2Num: radioNum("q2"),
-      q3: values.q3,
-      q3Num: radioNum("q3"),
-      q4: values.q4,
-      q4Num: radioNum("q4"),
-      q5: values.q5,
-      q5Num: radioNum("q5"),
-      q6: values.q6,
-      q6Num: radioNum("q6"),
-      q7: values.q7.join("; "),
-      q7Num: checkboxNum("q7"),
-      q8: values.q8,
-      q8Num: radioNum("q8"),
+      q1: joined("q1"),
+      q1Num: numPairs("q1"),
+      q2: joined("q2"),
+      q2Num: numPairs("q2"),
+      q3: joined("q3"),
+      q3Num: numPairs("q3"),
+      q4: joined("q4"),
+      q4Num: numPairs("q4"),
+      q5: joined("q5"),
+      q5Num: numPairs("q5"),
+      q6: joined("q6"),
+      q6Num: numPairs("q6"),
+      q7: joined("q7"),
+      q7Num: numPairs("q7"),
+      q8: joined("q8"),
+      q8Num: numPairs("q8"),
     };
 
     try {
@@ -392,55 +375,17 @@ export function CommitmentForm() {
             <FieldError msg={errors.phone} />
           </QuestionCard>
 
-          {/* Radio / checkbox questions */}
-          {QUESTIONS.map((q) => (
-            <QuestionCard key={q.id}>
-              <FieldLabel required className="text-[15px] leading-relaxed">
-                {q.label}
-              </FieldLabel>
-              {q.type === "radio" ? (
-                <RadioGroup
-                  value={(values as Record<string, string>)[q.key]}
-                  onValueChange={(v) => setField(q.key as keyof FormValues, v as never)}
-                  className="mt-4 gap-2"
-                >
-                  {RADIO_OPTIONS.map((opt) => {
-                    const selected = (values as Record<string, string>)[q.key] === opt.value;
-                    return (
-                      <div
-                        key={opt.value}
-                        className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 text-[15px] transition-colors ${
-                          selected
-                            ? "border-violet-500 bg-violet-50"
-                            : "border-slate-200 hover:border-violet-300 hover:bg-violet-50/50"
-                        }`}
-                      >
-                        <label
-                          htmlFor={`${q.id}-${opt.value}`}
-                          className="flex flex-1 cursor-pointer items-center gap-3"
-                        >
-                          <RadioGroupItem
-                            id={`${q.id}-${opt.value}`}
-                            value={opt.value}
-                            className="border-slate-400 text-violet-600 data-[state=checked]:border-violet-600"
-                          />
-                          <span className="text-slate-700">{opt.label}</span>
-                        </label>
-                        <NumberEntry
-                          id={`${q.id}-${opt.value}-num`}
-                          value={values.numbers[numKey(q.key, opt.value)] ?? ""}
-                          onChange={(val) => setNumber(q.key, opt.value, val)}
-                          active={selected}
-                          label={`${q.label} — ${opt.label} (संख्या)`}
-                        />
-                      </div>
-                    );
-                  })}
-                </RadioGroup>
-              ) : (
+          {/* Checkbox questions (all questions are multi-select) */}
+          {QUESTIONS.map((q) => {
+            const selected = (values[q.key as keyof FormValues] as string[]) ?? [];
+            return (
+              <QuestionCard key={q.id}>
+                <FieldLabel required className="text-[15px] leading-relaxed">
+                  {q.label}
+                </FieldLabel>
                 <div className="mt-4 flex flex-col gap-2">
-                  {RADIO_OPTIONS.map((opt) => {
-                    const checked = values.q7.includes(opt.value);
+                  {OPTIONS.map((opt) => {
+                    const checked = selected.includes(opt.value);
                     return (
                       <div
                         key={opt.value}
@@ -457,7 +402,9 @@ export function CommitmentForm() {
                           <Checkbox
                             id={`${q.id}-${opt.value}`}
                             checked={checked}
-                            onCheckedChange={() => toggleCheckbox(opt.value)}
+                            onCheckedChange={() =>
+                              toggleOption(q.key as keyof FormValues, opt.value)
+                            }
                             className="border-slate-400 data-[state=checked]:border-violet-600 data-[state=checked]:bg-violet-600"
                           />
                           <span className="text-slate-700">{opt.label}</span>
@@ -473,10 +420,10 @@ export function CommitmentForm() {
                     );
                   })}
                 </div>
-              )}
-              <FieldError msg={errors[q.key]} />
-            </QuestionCard>
-          ))}
+                <FieldError msg={errors[q.key]} />
+              </QuestionCard>
+            );
+          })}
 
           {/* Submit row */}
           <div className="flex items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm sm:px-6">
