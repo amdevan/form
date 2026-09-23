@@ -24,9 +24,9 @@ export const APPS_SCRIPT_CODE = `/**
 var HEADERS = [
   "Timestamp",
   "School Name",
-  "Palika Name",
   "Respondent",
   "Phone",
+  "Palika Name",
   "Q1 Regular attendance & homework support",
   "Q1 Numbers",
   "Q2 Study environment & materials",
@@ -72,9 +72,9 @@ function doPost(e) {
   var row = [
     new Date(),
     payload.schoolName || "",
-    payload.palikaName || "",
     payload.respondent || "",
     payload.phone || "",
+    payload.palikaName || "",
     payload.q1 || "",
     payload.q1Num || "",
     payload.q2 || "",

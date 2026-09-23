@@ -314,19 +314,6 @@ export function CommitmentForm() {
             />
             <FieldError msg={errors.schoolName} />
 
-            <FieldLabel htmlFor="palikaName" required className="mt-5">
-              पालिकाको नाम
-            </FieldLabel>
-            <Input
-              id="palikaName"
-              value={values.palikaName}
-              onChange={(e) => setField("palikaName", e.target.value)}
-              placeholder="तपाईंको उत्तर"
-              aria-invalid={!!errors.palikaName}
-              className="mt-2 h-11"
-            />
-            <FieldError msg={errors.palikaName} />
-
             <FieldLabel htmlFor="respondent" required className="mt-5">
               फारम भर्ने व्यक्ति
             </FieldLabel>
@@ -354,6 +341,19 @@ export function CommitmentForm() {
               className="mt-2 h-11"
             />
             <FieldError msg={errors.phone} />
+
+            <FieldLabel htmlFor="palikaName" required className="mt-5">
+              पालिकाको नाम
+            </FieldLabel>
+            <Input
+              id="palikaName"
+              value={values.palikaName}
+              onChange={(e) => setField("palikaName", e.target.value)}
+              placeholder="तपाईंको उत्तर"
+              aria-invalid={!!errors.palikaName}
+              className="mt-2 h-11"
+            />
+            <FieldError msg={errors.palikaName} />
           </QuestionCard>
 
           {/* Checkbox questions (all questions are multi-select) */}
@@ -440,8 +440,8 @@ export function CommitmentForm() {
                 <p className="text-emerald-800/80">
                   {new Date(lastSubmission.timestamp).toLocaleString()} ·{" "}
                   {lastSubmission.data.schoolName} ·{" "}
-                  {lastSubmission.data.palikaName} ·{" "}
-                  {lastSubmission.data.respondent}
+                  {lastSubmission.data.respondent} ·{" "}
+                  {lastSubmission.data.palikaName}
                 </p>
               </div>
             </div>
