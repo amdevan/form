@@ -20,7 +20,7 @@ const notoDevanagari = Noto_Sans_Devanagari({
 });
 
 export const metadata: Metadata = {
-  title: "अभिभावकको प्रतिबद्धता फारम · Google Sheets",
+  title: "अभिभावकको प्रतिबद्धता संकलन फारम",
   description:
     "नो-ब्याकएन्ड अभिभावक प्रतिबद्धता संकलन फारम। प्रविष्टिहरू सिधै Google Sheet मा दर्ता हुन्छन्।",
   keywords: [
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     "no backend",
     "अभिभावक प्रतिबद्धता",
   ],
-  authors: [{ name: "Z.ai" }],
+  authors: [{ name: "IT Relevant" }],
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
   },
